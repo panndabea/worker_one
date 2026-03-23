@@ -1,5 +1,15 @@
 import Stripe from 'stripe';
 
+function getConfiguredKey(env, names) {
+  for (const name of names) {
+    const value = env?.[name];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -30,14 +40,27 @@ export default {
     }
 
     if (request.method === 'GET' && route === '/config') {
-      if (!env.STRIPE_PUBLISHABLE_KEY) {
-        return jsonResponse({ error: 'STRIPE_PUBLISHABLE_KEY is not configured' }, 500);
+      const publishableKey = getConfiguredKey(env, [
+        'STRIPE_PUBLISHABLE_KEY',
+        'STRIPE_PUBLIC_KEY',
+        'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+        'VITE_STRIPE_PUBLISHABLE_KEY',
+      ]);
+      if (!publishableKey) {
+        return jsonResponse(
+          {
+            error:
+              'STRIPE_PUBLISHABLE_KEY is not configured (accepted aliases: STRIPE_PUBLIC_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, VITE_STRIPE_PUBLISHABLE_KEY)',
+          },
+          500
+        );
       }
-      return jsonResponse({ publishableKey: env.STRIPE_PUBLISHABLE_KEY });
+      return jsonResponse({ publishableKey });
     }
 
     if (request.method === 'POST' && route === '/create-payment-intent') {
-      if (!env.STRIPE_SECRET_KEY) {
+      const secretKey = getConfiguredKey(env, ['STRIPE_SECRET_KEY']);
+      if (!secretKey) {
         return jsonResponse({ error: 'STRIPE_SECRET_KEY is not configured' }, 500);
       }
 
@@ -56,7 +79,7 @@ export default {
         return jsonResponse({ error: 'amount exceeds the maximum of 99999999 cents' }, 400);
       }
 
-      const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(secretKey);
       try {
         const paymentIntent = await stripe.paymentIntents.create({
           amount,
