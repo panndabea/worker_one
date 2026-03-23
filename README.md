@@ -7,7 +7,7 @@ This repository is now prepared to be split into two deployments:
 
 ## What changed
 
-- `src/worker.js` now serves API endpoints only (`/config`, `/create-payment-intent`).
+- `src/worker.js` now serves API endpoints only (`/config`, `/create-payment-intent`), and also accepts `/api/config` and `/api/create-payment-intent`.
 - `wrangler.toml` no longer binds static assets.
 - Frontend files were intentionally excluded so this repository can be deployed directly as a Worker-only service.
 

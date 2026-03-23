@@ -15,6 +15,8 @@ function jsonResponse(data, status = 200) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const pathname = url.pathname.replace(/\/+$/, '') || '/';
+    const route = pathname.startsWith('/api/') ? pathname.slice(4) : pathname;
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -27,14 +29,14 @@ export default {
       });
     }
 
-    if (request.method === 'GET' && url.pathname === '/config') {
+    if (request.method === 'GET' && route === '/config') {
       if (!env.STRIPE_PUBLISHABLE_KEY) {
         return jsonResponse({ error: 'STRIPE_PUBLISHABLE_KEY is not configured' }, 500);
       }
       return jsonResponse({ publishableKey: env.STRIPE_PUBLISHABLE_KEY });
     }
 
-    if (request.method === 'POST' && url.pathname === '/create-payment-intent') {
+    if (request.method === 'POST' && route === '/create-payment-intent') {
       if (!env.STRIPE_SECRET_KEY) {
         return jsonResponse({ error: 'STRIPE_SECRET_KEY is not configured' }, 500);
       }
