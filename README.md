@@ -27,6 +27,9 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
+The worker also accepts these aliases for `STRIPE_PUBLISHABLE_KEY`:
+`STRIPE_PUBLIC_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `VITE_STRIPE_PUBLISHABLE_KEY`.
+
 ### Run locally
 
 ```bash
