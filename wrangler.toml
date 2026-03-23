@@ -1,3 +1,4 @@
-name = "workerone"
-main = "src/index.js"
-compatibility_date = "2024-01-01"
+name = "stripe-tester-worker"
+main = "src/worker.js"
+compatibility_date = "2026-03-23"
+compatibility_flags = ["nodejs_compat"]
