@@ -23,8 +23,9 @@ const PUBLISHABLE_KEY_NAMES = Object.freeze([
   'VITE_STRIPE_PUBLISHABLE_KEY',
 ]);
 
-let stripeClient;
-let stripeClientSecret;
+const SLASH_CHAR_CODE = '/'.charCodeAt(0);
+const MAX_STRIPE_CLIENTS_CACHE_SIZE = 4;
+const stripeClients = new Map();
 
 function getConfiguredKey(env, names) {
   for (const name of names) {
@@ -49,18 +50,29 @@ function normalizePath(pathname) {
   }
 
   let end = pathname.length;
-  while (end > 1 && pathname.charCodeAt(end - 1) === 47) {
+  while (end > 1 && pathname.charCodeAt(end - 1) === SLASH_CHAR_CODE) {
     end -= 1;
   }
   return pathname.slice(0, end);
 }
 
 function getStripeClient(secretKey) {
-  if (stripeClientSecret === secretKey && stripeClient) {
-    return stripeClient;
+  const cachedClient = stripeClients.get(secretKey);
+  if (cachedClient) {
+    stripeClients.delete(secretKey);
+    stripeClients.set(secretKey, cachedClient);
+    return cachedClient;
   }
-  stripeClientSecret = secretKey;
-  stripeClient = new Stripe(secretKey);
+
+  if (stripeClients.size >= MAX_STRIPE_CLIENTS_CACHE_SIZE) {
+    const oldestKey = stripeClients.keys().next().value;
+    if (oldestKey !== undefined) {
+      stripeClients.delete(oldestKey);
+    }
+  }
+
+  const stripeClient = new Stripe(secretKey);
+  stripeClients.set(secretKey, stripeClient);
   return stripeClient;
 }
 
